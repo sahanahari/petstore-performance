@@ -22,12 +22,7 @@ pipeline {
             }
         }
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                url: 'https://github.com/your-username/petstore-performance.git'
-            }
-        }
+        // ❌ REMOVED duplicate checkout stage
 
         stage('Prepare Results Folder') {
             steps {
@@ -77,7 +72,7 @@ pipeline {
         always {
             emailext (
                 subject: "JMeter Test COMPLETED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Execution finished.\nSee attached results in Jenkins.",
+                body: "Execution finished.\nSee results in Jenkins.",
                 to: "${EMAIL_TO}"
             )
         }
