@@ -2,12 +2,15 @@ pipeline {
     agent any
 
     environment {
-        JMETER_BIN = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3"
+        JMETER_HOME = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3"
+        JMETER_BIN = "${JMETER_HOME}\\bin\\jmeter.bat"
+
         WORKSPACE_DIR = "${WORKSPACE}"
         RESULTS_DIR = "${WORKSPACE}\\results"
         JMX_FILE = "${WORKSPACE}\\jmeter\\SCR01_Petstore.jmx"
         JTL_FILE = "${WORKSPACE}\\results\\result.jtl"
         REPORT_DIR = "${WORKSPACE}\\results\\html-report"
+
         EMAIL_TO = "sahanaexpleo@gmail.com"
     }
 
@@ -40,9 +43,9 @@ Workspace: ${env.WORKSPACE}
         stage('Verify Files') {
             steps {
                 bat """
-                echo Checking JMeter path...
+                echo Checking JMeter executable...
                 if not exist "%JMETER_BIN%" (
-                    echo ERROR: JMeter not found
+                    echo ERROR: jmeter.bat not found
                     exit 1
                 )
 
