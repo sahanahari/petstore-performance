@@ -2,13 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // ✅ FIXED JMeter path (your actual path)
-        JMETER_HOME = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3"
-
-        RESULTS_DIR = "results"
-        JMX_FILE = "jmeter/petstore.jmx"
-        JTL_FILE = "results/result.jtl"
-        REPORT_DIR = "results/html-report"
+        JMETER_BIN = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3\\bin\\jmeter.bat"
+        WORKSPACE_DIR = "${WORKSPACE}"
+        RESULTS_DIR = "${WORKSPACE}\\results"
+        JMX_FILE = "${WORKSPACE}\\jmeter\\SCR01_Petstore.jmx"
+        JTL_FILE = "${WORKSPACE}\\results\\result.jtl"
+        REPORT_DIR = "${WORKSPACE}\\results\\html-report"
         EMAIL_TO = "sahanaexpleo@gmail.com"
     }
 
@@ -18,7 +17,12 @@ pipeline {
             steps {
                 emailext (
                     subject: "JMeter Test STARTED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                    body: "Performance test has started.\nJob: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}",
+                    body: """Performance test has started.
+
+Job: ${env.JOB_NAME}
+Build: ${env.BUILD_NUMBER}
+Workspace: ${env.WORKSPACE}
+""",
                     to: "${EMAIL_TO}"
                 )
             }
@@ -27,8 +31,27 @@ pipeline {
         stage('Prepare Results Folder') {
             steps {
                 bat """
-                if exist "%WORKSPACE%\\%RESULTS_DIR%" rmdir /s /q "%WORKSPACE%\\%RESULTS_DIR%"
-                mkdir "%WORKSPACE%\\%RESULTS_DIR%"
+                if exist "%RESULTS_DIR%" rmdir /s /q "%RESULTS_DIR%"
+                mkdir "%RESULTS_DIR%"
+                """
+            }
+        }
+
+        stage('Verify Files') {
+            steps {
+                bat """
+                echo Checking JMeter path...
+                if not exist "%JMETER_BIN%" (
+                    echo ERROR: JMeter not found
+                    exit 1
+                )
+
+                echo Checking JMX file...
+                if not exist "%JMX_FILE%" (
+                    echo ERROR: JMX file not found
+                    dir "%WORKSPACE%\\jmeter"
+                    exit 1
+                )
                 """
             }
         }
@@ -36,10 +59,10 @@ pipeline {
         stage('Run JMeter Test') {
             steps {
                 bat """
-                "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
-                -t "%WORKSPACE%\\${JMX_FILE}" ^
-                -l "%WORKSPACE%\\${JTL_FILE}" ^
-                -e -o "%WORKSPACE%\\${REPORT_DIR}"
+                "%JMETER_BIN%" -n ^
+                -t "%JMX_FILE%" ^
+                -l "%JTL_FILE%" ^
+                -e -o "%REPORT_DIR%"
                 """
             }
         }
@@ -56,7 +79,13 @@ pipeline {
         success {
             emailext (
                 subject: "SUCCESS: JMeter Test Passed - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Test completed successfully.\nCheck report in Jenkins.\n\nJob: ${env.JOB_NAME}",
+                body: """Test completed successfully.
+
+View Report in Jenkins.
+
+Job: ${env.JOB_NAME}
+Build: ${env.BUILD_NUMBER}
+""",
                 to: "${EMAIL_TO}"
             )
         }
@@ -64,7 +93,16 @@ pipeline {
         failure {
             emailext (
                 subject: "FAILURE: JMeter Test Failed - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Test FAILED.\nCheck console logs and report.\n\nJob: ${env.JOB_NAME}",
+                body: """Test FAILED.
+
+Check:
+- Console Output
+- JMeter Logs
+- HTML Report
+
+Job: ${env.JOB_NAME}
+Build: ${env.BUILD_NUMBER}
+""",
                 to: "${EMAIL_TO}"
             )
         }
@@ -72,7 +110,13 @@ pipeline {
         always {
             emailext (
                 subject: "JMeter Test COMPLETED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Execution finished.\nSee results in Jenkins.",
+                body: """Execution finished.
+
+Check Jenkins for reports.
+
+Job: ${env.JOB_NAME}
+Build: ${env.BUILD_NUMBER}
+""",
                 to: "${EMAIL_TO}"
             )
         }
