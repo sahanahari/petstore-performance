@@ -4,7 +4,6 @@ pipeline {
 
     environment {
         JMETER_HOME = 'C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3'
-        EMAIL_TO = 'sahanaexpleo@gmail.com'
     }
 
     stages {
@@ -18,7 +17,7 @@ pipeline {
         stage('Start Notification') {
             steps {
                 emailext(
-                    to: "${EMAIL_TO}",
+                    to: 'sahanaexpleo@gmail.com',
                     subject: "🚀 STARTED: JMeter Test - Build ${env.BUILD_NUMBER}",
                     body: """
 JMeter Test Started
@@ -26,7 +25,6 @@ JMeter Test Started
 Job Name  : ${env.JOB_NAME}
 Build No  : ${env.BUILD_NUMBER}
 Workspace : ${env.WORKSPACE}
-
 """
                 )
             }
@@ -73,9 +71,12 @@ Workspace : ${env.WORKSPACE}
                 echo =========================================
 
                 call "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
-                -t "%WORKSPACE%\\jmeter\\SCR01_Petstore.jmx" ^
-                -l "%JTL_FILE%" ^
-                -e -o "%REPORT_DIR%"
+                 -t "%WORKSPACE%\\jmeter\\SCR01_Petstore.jmx" ^
+                 -l "%JTL_FILE%"
+
+                echo Generating HTML Report...
+
+                call "%JMETER_HOME%\\bin\\jmeter.bat" -g "%JTL_FILE%" -o "%REPORT_DIR%"
 
                 echo =========================================
                 echo JMeter Execution Completed
@@ -92,7 +93,7 @@ Workspace : ${env.WORKSPACE}
                     reportName: "JMeter Report - Build ${env.BUILD_NUMBER}",
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
-                    allowMissing: false
+                    allowMissing: true
                 ])
             }
         }
@@ -106,7 +107,7 @@ Workspace : ${env.WORKSPACE}
 
         success {
             emailext(
-                to: "${EMAIL_TO}",
+                to: 'sahanaexpleo@gmail.com',
                 subject: "✅ SUCCESS: JMeter Test - Build ${env.BUILD_NUMBER}",
                 body: """
 JMeter Test SUCCESS
@@ -114,18 +115,13 @@ JMeter Test SUCCESS
 Job Name  : ${env.JOB_NAME}
 Build No  : ${env.BUILD_NUMBER}
 Build URL : ${env.BUILD_URL}
-
-Reports:
-- JTL  : result_${env.BUILD_NUMBER}.jtl
-- HTML : html_${env.BUILD_NUMBER}
-
 """
             )
         }
 
         failure {
             emailext(
-                to: "${EMAIL_TO}",
+                to: 'sahanaexpleo@gmail.com',
                 subject: "❌ FAILURE: JMeter Test - Build ${env.BUILD_NUMBER}",
                 body: """
 JMeter Test FAILED
@@ -137,8 +133,6 @@ Build URL : ${env.BUILD_URL}
 Check:
 - Console Output
 - JMeter Logs
-- HTML Report
-
 """
             )
         }
