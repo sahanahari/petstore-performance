@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         JMETER_HOME = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3"
-        JMETER_BIN = "${JMETER_HOME}\\bin\\jmeter.bat"
 
         WORKSPACE_DIR = "${WORKSPACE}"
         RESULTS_DIR = "${WORKSPACE}\\results"
@@ -62,10 +61,10 @@ Workspace: ${env.WORKSPACE}
         stage('Run JMeter Test') {
             steps {
                 bat """
-                "%JMETER_BIN%" -n ^
-                -t "%JMX_FILE%" ^
-                -l "%JTL_FILE%" ^
-                -e -o "%REPORT_DIR%"
+                %JMETER_HOME%\\bin\\jmeter.bat -n ^
+                -t %JMX_FILE% ^
+                -l %JTL_FILE% ^
+                -e -o "%REPORT_DIR%
                 """
             }
         }
