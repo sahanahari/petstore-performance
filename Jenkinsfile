@@ -2,7 +2,9 @@ pipeline {
     agent any
 
     environment {
-        JMETER_HOME = "C:\\apache-jmeter-5.6.3"
+        // ✅ FIXED JMeter path (your actual path)
+        JMETER_HOME = "C:\\Users\\shari\\Documents\\apache-jmeter-5.6.3\\apache-jmeter-5.6.3"
+
         RESULTS_DIR = "results"
         JMX_FILE = "jmeter/petstore.jmx"
         JTL_FILE = "results/result.jtl"
@@ -22,13 +24,11 @@ pipeline {
             }
         }
 
-        // ❌ REMOVED duplicate checkout stage
-
         stage('Prepare Results Folder') {
             steps {
                 bat """
-                if exist %RESULTS_DIR% rmdir /s /q %RESULTS_DIR%
-                mkdir %RESULTS_DIR%
+                if exist "%WORKSPACE%\\%RESULTS_DIR%" rmdir /s /q "%WORKSPACE%\\%RESULTS_DIR%"
+                mkdir "%WORKSPACE%\\%RESULTS_DIR%"
                 """
             }
         }
@@ -36,10 +36,10 @@ pipeline {
         stage('Run JMeter Test') {
             steps {
                 bat """
-                %JMETER_HOME%\\bin\\jmeter -n ^
-                -t %JMX_FILE% ^
-                -l %JTL_FILE% ^
-                -e -o %REPORT_DIR%
+                "%JMETER_HOME%\\bin\\jmeter.bat" -n ^
+                -t "%WORKSPACE%\\${JMX_FILE}" ^
+                -l "%WORKSPACE%\\${JTL_FILE}" ^
+                -e -o "%WORKSPACE%\\${REPORT_DIR}"
                 """
             }
         }
